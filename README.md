@@ -1,4 +1,4 @@
-BBC News Summarizer — LLM Pipeline
+## BBC News Summarizer — LLM Pipeline
 
 Автоматический пайплайн: читает новости из CSV → отправляет в LLM через API → сохраняет краткое содержание в TXT-файл.
 
@@ -49,18 +49,18 @@ bbc-news-data.csv
 
 ## Установка и запуск
 
-### 1. Установите зависимость
+### 1. Установка зависимости
 
 ```bash
 pip install requests
 ```
 
-### 2. Получите API-ключ Groq
+### 2. Получение API-ключа Groq
 
-Зарегистрируйтесь на [console.groq.com](https://console.groq.com) и создайте ключ (бесплатно).
+На [console.groq.com](https://console.groq.com).
 
 
-### 3. Запустите
+### 3. Запуск
 
 ```bash
 python news_summarizer.py
