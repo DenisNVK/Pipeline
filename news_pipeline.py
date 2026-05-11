@@ -1,15 +1,15 @@
 import csv
 import time
+import json
 import requests
 
-API_KEY      = "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"
+API_KEY      = "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"
 API_URL      = "https://api.groq.com/openai/v1/chat/completions"
 MODEL        = "meta-llama/llama-4-scout-17b-16e-instruct"
 CSV_PATH     = "bbc-news-data.csv"   
-OUTPUT_FILE  = "summaries.txt"      
+OUTPUT_FILE  = "summaries.json"      
 MAX_ARTICLES = 10                    
-DELAY_SEC    = 1.5                 
-
+DELAY_SEC    = 1.5                   
 
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
@@ -31,7 +31,7 @@ def read_news_csv(path: str) -> list:
 
 
 def summarize_article(title: str, content: str) -> str:
-    """Отправляет статью в Groq и возвращает краткое содержание."""
+    """Отправляет статью и возвращает краткое содержание."""
     prompt = (
         f"Дай краткое содержание следующей новости на русском языке "
         f"в 2–3 предложениях.\n\n"
@@ -73,7 +73,7 @@ def summarize_article(title: str, content: str) -> str:
 
 def run_pipeline():
     print("=" * 60)
-    print("  Пайплайн ")
+    print("  Пайплайн: Новости - Краткое содержание")
     print("=" * 60)
 
     # 1. Читаем CSV
@@ -86,7 +86,7 @@ def run_pipeline():
         print(f"      Обрабатываем первые: {MAX_ARTICLES}")
 
     # 2. Генерируем краткие содержания
-    print(f"\n[2/3] Отправляем в Groq ({MODEL})...")
+    print(f"\n[2/3] Отправляем в ({MODEL})...")
     results = []
     for i, article in enumerate(articles, 1):
         title    = article.get("title", "Без заголовка").strip()
@@ -96,7 +96,7 @@ def run_pipeline():
         print(f"  [{i}/{len(articles)}] {title[:60]}...")
         summary = summarize_article(title, content)
         results.append({
-            "index":    i,
+            "id":       i,
             "category": category,
             "title":    title,
             "summary":  summary,
@@ -105,21 +105,23 @@ def run_pipeline():
         if i < len(articles):
             time.sleep(DELAY_SEC)
 
-    # 3. Сохраняем результат
+    # 3. Сохраняем результат в JSON
     print(f"\n[3/3] Сохраняем результаты в: {OUTPUT_FILE}")
+
+    output = {
+        "meta": {
+            "source":        "BBC News Dataset",
+            "model":         MODEL,
+            "total_articles": len(results),
+        },
+        "articles": results,
+    }
+
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write("BBC NEWS — КРАТКОЕ СОДЕРЖАНИЕ СТАТЕЙ\n")
-        f.write(f"Модель: {MODEL}\n")
-        f.write("=" * 60 + "\n\n")
+        json.dump(output, f, ensure_ascii=False, indent=2)
 
-        for r in results:
-            f.write(f"[{r['index']}] [{r['category'].upper()}]\n")
-            f.write(f"Заголовок : {r['title']}\n")
-            f.write(f"Содержание: {r['summary']}\n")
-            f.write("-" * 60 + "\n\n")
-
-    print(f"    Готово! Обработано {len(results)} статей.")
-    print(f"    Результат сохранён в: {OUTPUT_FILE}")
+    print(f"   Готово! Обработано {len(results)} статей.")
+    print(f"   Результат сохранён в: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
